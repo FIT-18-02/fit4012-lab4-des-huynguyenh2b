@@ -2,28 +2,28 @@
 
 ## Mục tiêu
 
-Mục tiêu của bài lab là nắm vững và tự tay triển khai chi tiết thuật toán mã hóa khối DES (Data Encryption Standard). Từ bộ khung mã nguồn C++ ban đầu chỉ hỗ trợ mã hóa một khối 64-bit đơn giản, yêu cầu đặt ra là hoàn thiện chương trình thành một ứng dụng mã hóa toàn diện: hỗ trợ giải mã (decryption), xử lý dữ liệu kích thước lớn (multi-block) với tính năng đệm (padding), đồng thời xây dựng các kịch bản kiểm thử (test scripts) tự động để đánh giá tính đúng đắn và an toàn của thuật toán.
+Mục tiêu của bài lab là nghiên cứu và cài đặt chi tiết thuật toán mã hóa khối DES (Data Encryption Standard) và TripleDES (3DES). Thông qua bài tập này, tôi đã nắm vững cấu trúc mạng Feistel, quy trình sinh 16 khóa vòng (Round Keys), các phép biến đổi toán học như hoán vị (Permutation), thay thế (S-box) và cách thức xử lý dữ liệu thực tế thông qua cơ chế phân đoạn đa khối (multi-block) cùng kỹ thuật đệm dữ liệu (padding).
 
 ## Cách làm / Method
 
-1. **Hoàn thiện hàm `decrypt`**: Xây dựng thuật toán giải mã bằng cách giữ nguyên cấu trúc mạng Feistel nhưng đảo ngược thứ tự sử dụng các khóa phụ (Round Keys từ 15 lùi về 0).
-2. **Hỗ trợ Multi-block & Padding**:
-    - Viết thêm hàm `pad_plaintext` áp dụng Zero-padding (thêm bit '0') cho các chuỗi đầu vào không chia hết cho 64-bit.
-    - Triển khai chế độ **ECB (Electronic Codebook)** qua hai hàm `encrypt_ecb` và `decrypt_ecb`, cho phép cắt chuỗi dài thành các block 64-bit để xử lý tuần tự.
-3. **Cập nhật giao diện CLI (`main`)**: Sử dụng `argc` và `argv` để chương trình có thể nhận lệnh linh hoạt từ terminal (ví dụ: `./des encrypt <key> <data>`), nhưng vẫn đảm bảo tính tương thích ngược với các test case cũ khi chạy không có tham số.
-4. **Viết kịch bản kiểm thử (Bash Scripts)**: Tích hợp `Makefile` vào các script `.sh` để tự động biên dịch và kiểm thử các trường hợp: Round-trip, Multi-block padding, Negative test (Tamper và Wrong-key).
+Tôi đã thực hiện phát triển và tối ưu hóa mã nguồn từ cấu trúc starter code như sau:
+- **Phát triển Class KeyGenerator:** Cài đặt đầy đủ các bảng PC1, PC2 và logic dịch chuyển bit (left shifts) theo từng vòng để tạo ra 16 khóa con từ khóa 64-bit ban đầu.
+- **Xây dựng cơ chế giải mã (Decryption):** Tái cấu trúc hàm xử lý khối để có thể chạy đảo ngược thứ tự các khóa vòng (từ vòng 16 về vòng 1), cho phép thực hiện giải mã dựa trên cùng một logic mạng Feistel của quá trình mã hóa.
+- **Xử lý Đa khối & Zero Padding:** Cài đặt vòng lặp để chia nhỏ plaintext thành các khối 64-bit. Nếu khối cuối cùng không đủ độ dài, chương trình tự động chèn thêm các bit `0` (Zero Padding) cho đến khi đạt đủ kích thước khối chuẩn 64-bit.
+- **Triển khai TripleDES:** Kết hợp các thực thể DES để thực hiện chuỗi thao tác mã hóa/giải mã theo đúng tiêu chuẩn 3DES (E-D-E).
+- **Chuẩn hóa I/O:** Cài đặt hàm `main` để nhận dữ liệu qua `stdin` và xuất kết quả qua `stdout` theo đúng "Submission Contract" để phục vụ việc kiểm thử tự động bằng script và hệ thống CI.
 
 ## Kết quả / Result
 
-Chương trình đã chạy thành công qua toàn bộ các test cases đã thiết lập:
-- **Test Sample gốc (`test_sample.sh`)**: [PASS] Trả về đúng ciphertext mẫu mong đợi `01111110...`.
-- **Round-trip (`test_encrypt_decrypt_roundtrip.sh`)**: [PASS] Dữ liệu sau khi đi qua chu trình `Decrypt(Encrypt(Plaintext))` trùng khớp hoàn toàn với Plaintext gốc.
-- **Multi-block Padding (`test_multiblock_padding.sh`)**: [PASS] Khi đầu vào là chuỗi 80-bit, chương trình tự động đệm thêm 48 bit '0' thành 2 khối 64-bit (128-bit). Quá trình mã hóa và giải mã diễn ra trơn tru mà không mất mát dữ liệu khối đầu.
-- **Tamper Test (`test_tamper_negative.sh`)**: [PASS] Khi thử lật (flip) cố ý chỉ 1 bit đầu tiên của Ciphertext, kết quả giải mã bị sai lệch hoàn toàn so với bản rõ ban đầu, chứng minh được "hiệu ứng thác" (avalanche effect) và tính toàn vẹn của thuật toán.
-- **Wrong Key Test (`test_wrong_key_negative.sh`)**: [PASS] Khi dùng sai khóa giải mã (chỉ sai lệch vài bit so với khóa gốc), chương trình không thể khôi phục lại Plaintext.
+Chương trình đã vượt qua tất cả các kịch bản kiểm thử quan trọng:
+- **Test mẫu (Sample):** Mã hóa thành công dữ liệu mẫu từ yêu cầu bài lab, cho kết quả bản mã (ciphertext) khớp hoàn toàn với vector kiểm thử tiêu chuẩn.
+- **Test khứ hồi (Round-trip):** Thực hiện mã hóa một chuỗi nhị phân và sau đó giải mã ngược lại, kết quả thu được bản rõ (plaintext) trùng khớp 100% với dữ liệu ban đầu.
+- **Xử lý Multi-block:** Mã hóa chính xác các chuỗi bit có độ dài lớn (ví dụ 128 bit, 192 bit) và kiểm chứng cơ chế padding hoạt động đúng khi khối cuối bị lẻ bit.
+- **Negative Tests:** Chứng minh được rằng khi giải mã với khóa sai hoặc khi dữ liệu bản mã bị thay đổi (tampered), chương trình sẽ trả về kết quả sai lệch hoàn toàn, khẳng định tính toàn vẹn và bảo mật của thuật toán.
 
 ## Kết luận / Conclusion
 
-- **Điều học được**: Bài lab giúp hiểu sâu sắc về cấu trúc mạng Feistel, cách thức hoạt động của hộp S-Box, hàm sinh khóa (Key Schedule), và quy trình kiểm thử phần mềm qua các kịch bản kiểm thử biên (negative testing).
-- **Hạn chế hiện tại**: Chương trình đang sử dụng Zero-padding (có thể gây nhầm lẫn nếu chuỗi gốc vô tình kết thúc bằng nhiều bit '0') và đang chạy ở chế độ ECB (chế độ này không an toàn nếu các khối dữ liệu đầu vào giống hệt nhau).
-- **Hướng mở rộng**: Trong tương lai, chương trình có thể được nâng cấp lên **TripleDES (3DES)** để chống lại các cuộc tấn công Brute-force hiện đại. Thay vì dùng chế độ ECB, có thể triển khai thêm chế độ **CBC (Cipher Block Chaining)** để tăng cường tính bảo mật cho dữ liệu multi-block, và áp dụng chuẩn padding PKCS#7 thay cho Zero-padding.
+Thông qua bài Lab này, tôi đã rút ra được các kết luận sau:
+- **Điều học được:** Hiểu sâu sắc sức mạnh của mạng Feistel trong việc tạo ra sự xáo trộn (confusion) và khuếch tán (diffusion) dữ liệu thông qua các vòng lặp đơn giản.
+- **Hạn chế hiện tại:** Cơ chế Zero Padding tuy dễ cài đặt nhưng có thể gây nhầm lẫn nếu dữ liệu gốc kết thúc bằng các bit 0. Ngoài ra, việc sử dụng chế độ ECB (Electronic Codebook) vẫn còn tiềm ẩn nguy cơ lộ lộ mẫu dữ liệu khi mã hóa nhiều khối giống nhau.
+- **Hướng mở rộng:** Trong tương lai, có thể nâng cấp lên các chuẩn đệm an toàn hơn như PKCS#7 và áp dụng các chế độ vận hành nâng cao như CBC (Cipher Block Chaining) để tăng cường khả năng chống lại các cuộc tấn công phân tích thống kê.

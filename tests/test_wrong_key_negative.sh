@@ -1,23 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> Running Wrong Key (Negative) Test..."
-make all
+PT="0000111100001111000011110000111100001111000011110000111100001111"
+RIGHT_KEY="1111000011110000111100001111000011110000111100001111000011110000"
+WRONG_KEY="0000111100001111000011110000111100001111000011110000111100001111"
 
-CORRECT_KEY="0001001100110100010101110111100110011011101111001101111111110001"
-# Khóa sai: Đảo 4 bit đầu tiên
-WRONG_KEY="1111001100110100010101110111100110011011101111001101111111110001"
-PLAINTEXT="0001001000110100010101100111100010011010101111001101111011110001"
+# Mã hóa bằng key đúng
+CT=$(printf "1\n%s\n%s\n" "$PT" "$RIGHT_KEY" | ./des)
 
-CIPHER_OUT=$(./des encrypt "$CORRECT_KEY" "$PLAINTEXT")
-CIPHERTEXT=$(echo "$CIPHER_OUT" | awk '{print $2}')
+# Cố gắng giải mã bằng key sai
+DECRYPTED=$(printf "2\n%s\n%s\n" "$CT" "$WRONG_KEY" | ./des)
 
-DECRYPT_OUT=$(./des decrypt "$WRONG_KEY" "$CIPHERTEXT")
-DECRYPTED=$(echo "$DECRYPT_OUT" | awk '{print $2}')
-
-if [[ "$DECRYPTED" != "$PLAINTEXT" ]]; then
-  echo "[PASS] Wrong key test successful. Cannot recover plaintext with the wrong key."
+if [[ "$DECRYPTED" != "$PT" ]]; then
+  echo "[PASS] test_wrong_key_negative: Wrong key successfully failed to recover the plaintext."
 else
-  echo "[FAIL] Wrong key test failed."
+  echo "[FAIL] test_wrong_key_negative: Wrong key unexpectedly recovered the plaintext!"
   exit 1
 fi

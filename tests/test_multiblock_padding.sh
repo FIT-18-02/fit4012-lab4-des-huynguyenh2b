@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> Running Multi-block & Padding Test..."
-make all
-
+# Chuỗi 68 bit (64 bit block 1 + 4 bit block 2)
+PT="11111111111111111111111111111111111111111111111111111111111111111010"
 KEY="0001001100110100010101110111100110011011101111001101111111110001"
-# 80 bits plaintext (1 block đầy + 16 bit dư)
-PLAINTEXT="11110000111100001111000011110000111100001111000011110000111100001010101010101010"
-# Cần padding thêm 48 số 0 để đủ 128 bits (2 blocks)
-EXPECTED_PADDED="${PLAINTEXT}000000000000000000000000000000000000000000000000"
 
-CIPHER_OUT=$(./des encrypt "$KEY" "$PLAINTEXT")
-CIPHERTEXT=$(echo "$CIPHER_OUT" | awk '{print $2}')
+# Plaintext mong muốn sau khi được pad thêm 60 số 0 (để đủ 128 bit / 2 block)
+PADDING=$(printf '0%.0s' {1..60})
+EXPECTED_PT="${PT}${PADDING}"
 
-DECRYPT_OUT=$(./des decrypt "$KEY" "$CIPHERTEXT")
-DECRYPTED=$(echo "$DECRYPT_OUT" | awk '{print $2}')
+CT=$(printf "1\n%s\n%s\n" "$PT" "$KEY" | ./des)
 
-if [[ "$DECRYPTED" == "$EXPECTED_PADDED" ]]; then
-  echo "[PASS] Multi-block padding successful. Padding verified."
+if [[ ${#CT} -ne 128 ]]; then
+    echo "[FAIL] test_multiblock_padding: Expected ciphertext length of 128, got ${#CT}."
+    exit 1
+fi
+
+DECRYPTED=$(printf "2\n%s\n%s\n" "$CT" "$KEY" | ./des)
+
+if [[ "$DECRYPTED" == "$EXPECTED_PT" ]]; then
+  echo "[PASS] test_multiblock_padding: Successfully encrypted and decrypted multi-block with zero padding."
 else
-  echo "[FAIL] Padding test failed."
-  echo "Expected: $EXPECTED_PADDED"
-  echo "Got:      $DECRYPTED"
+  echo "[FAIL] test_multiblock_padding: Padded plaintext mismatch."
   exit 1
 fi

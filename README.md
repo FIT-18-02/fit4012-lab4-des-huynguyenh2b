@@ -1,7 +1,7 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/B72A5Yyp)
 # FIT4012 - Lab 4: DES / TripleDES Starter Repository
 
-Repo này là **starter repo** cho Lab 4 của FIT4012.  
+Repo này là **starter repo** cho Lab 4 của FIT4012.
 
 ## 1. Cấu trúc repo
 
@@ -57,33 +57,29 @@ cmake --build build
 
 ## 3. Input / Đầu vào
 
-TODO_STUDENT: Mô tả rõ đầu vào của chương trình sau khi em hoàn thiện bài lab.
+Chương trình được thiết kế để nhận dữ liệu tương tác trực tiếp từ bàn phím thông qua luồng nhập chuẩn (`stdin`).
 
-Gợi ý nên nêu:
-- plaintext đang được nhập như thế nào
-- key đang được nhập như thế nào
-- chương trình nhận 1 block hay nhiều block
-- định dạng dữ liệu là chuỗi bit, chuỗi ký tự hay file
+- **Cách nhập Plaintext/Ciphertext:** Người dùng nhập trực tiếp một chuỗi các ký tự nhị phân (`0` và `1`). Chương trình sẽ đọc toàn bộ chuỗi này để xử lý.
+- **Cách nhập Key:** Khóa được nhập dưới dạng chuỗi nhị phân. Đối với chế độ DES, yêu cầu nhập 01 khóa 64-bit. Đối với chế độ TripleDES, yêu cầu nhập lần lượt 03 khóa riêng biệt (K1, K2, K3), mỗi khóa dài đúng 64-bit.
+- **Xử lý khối (Block processing):** Chương trình hỗ trợ xử lý nhiều block (multi-block). Nếu dữ liệu đầu vào có độ dài vượt quá 64 bit, chương trình sẽ tự động chia nhỏ thành các khối 64-bit để tiến hành mã hóa hoặc giải mã tuần tự.
+- **Định dạng dữ liệu:** Dữ liệu hoàn toàn là chuỗi bit (binary string). Chương trình không nhận trực tiếp file hay chuỗi ký tự ASCII thông thường để tập trung vào việc mô phỏng chính xác thuật toán.
 
 ## 4. Output / Đầu ra
 
-TODO_STUDENT: Mô tả rõ đầu ra của chương trình.
+Kết quả đầu ra của chương trình được tối ưu để hiển thị rõ ràng và phục vụ việc tự động chấm điểm (CI).
 
-Gợi ý nên nêu:
-- ciphertext hiển thị ra sao
-- có in round keys hay không
-- có hỗ trợ giải mã hay không
-- với TripleDES thì đầu ra gồm những gì
+- **Hiển thị Ciphertext / Plaintext:** Kết quả cuối cùng (bản mã hoặc bản rõ) được in ra dưới dạng một chuỗi nhị phân dài liên tục trên một dòng duy nhất, không chứa khoảng trắng hay ký tự thừa.
+- **Round Keys:** Để đảm bảo output sạch sẽ cho hệ thống đối chiếu tự động, chương trình **không** in ra các round keys hay các bước tính toán trung gian.
+- **Hỗ trợ giải mã:** Chương trình hỗ trợ đầy đủ tính năng giải mã ngược lại thành plaintext ban đầu cho cả DES và TripleDES.
+- **Kết quả TripleDES:** Đầu ra là một chuỗi nhị phân đã trải qua toàn bộ chuỗi 3 phép toán mã hóa/giải mã tương ứng (ví dụ: `E(K3, D(K2, E(K1, P)))` đối với mã hóa 3DES).
 
 ## 5. Padding đang dùng
 
-TODO_STUDENT: Giải thích cơ chế padding em dùng.
+Chương trình sử dụng cơ chế **Zero Padding** để đảm bảo dữ liệu đầu vào luôn vừa vặn với kích thước khối chuẩn của thuật toán DES.
 
-Gợi ý:
-- nếu plaintext dài hơn 64 bit thì chia block như thế nào
-- nếu thiếu bit thì pad bằng `0` ra sao
-- hạn chế của zero padding là gì
-- vì sao cách này chỉ phù hợp cho bài học nhập môn, không phải thiết kế an toàn hoàn chỉnh trong thực tế
+- **Cơ chế chia block và đệm:** Nếu chuỗi plaintext đầu vào dài hơn 64 bit, nó sẽ được cắt tuần tự thành các block 64-bit. Nếu block cuối cùng bị thiếu bit (độ dài không chia hết cho 64), chương trình sẽ tự động chèn thêm các ký tự `0` vào phía cuối khối đó cho đến khi đủ 64 bit.
+- **Hạn chế của Zero Padding:** Nhược điểm lớn nhất là tính nhập nhằng (ambiguity) khi giải mã. Nếu bản thân dữ liệu gốc đã kết thúc bằng một hoặc nhiều bit `0`, sau khi giải mã, hệ thống không thể phân biệt được đâu là dữ liệu gốc và đâu là bit đệm được thêm vào.
+- **Mục đích sử dụng:** Cách padding này chỉ phù hợp cho các bài học nhập môn hoặc môi trường học thuật vì nó dễ cài đặt, giúp sinh viên hiểu rõ luồng chạy của thuật toán mã hóa khối. Trong thực tế bảo mật (production), các chuẩn padding như PKCS#7 sẽ được sử dụng để giải quyết triệt để vấn đề nhập nhằng và an toàn hơn.
 
 ## 6. Tests bắt buộc
 
@@ -150,7 +146,7 @@ Chọn mode:
 4 = TripleDES decrypt
 ```
 
-### Mode 1: DES encrypt 
+### Mode 1: DES encrypt
 Nhập lần lượt:
 1. `1`
 2. plaintext nhị phân
@@ -171,7 +167,7 @@ Yêu cầu:
 - giải mã DES theo round keys đảo ngược
 - in ra plaintext cuối cùng
 
-### Mode 3: TripleDES encrypt 
+### Mode 3: TripleDES encrypt
 Nhập lần lượt:
 1. `3`
 2. plaintext 64-bit
@@ -183,7 +179,7 @@ Yêu cầu:
 - thực hiện đúng chuỗi **E(K3, D(K2, E(K1, P)))**
 - in ra ciphertext cuối cùng
 
-### Mode 4: TripleDES decrypt 
+### Mode 4: TripleDES decrypt
 Nhập lần lượt:
 1. `4`
 2. ciphertext 64-bit

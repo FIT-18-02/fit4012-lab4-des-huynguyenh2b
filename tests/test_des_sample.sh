@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> Running Sample DES Test..."
-make all  # Tận dụng Makefile để build
+PT="0001001000110100010101100111100010011010101111001101111011110001"
+KEY="0001001100110100010101110111100110011011101111001101111111110001"
+EXPECTED="0111111010111111010001001001001100100011111110101111101011111000"
 
-EXPECTED="Ciphertext: 0111111010111111010001001001001100100011111110101111101011111000"
-# Chạy binary ./des và lấy dòng cuối cùng
-OUTPUT=$(./des | tail -n 1)
+# Truyền Mode 1, Plaintext và Key qua stdin
+CT=$(printf "1\n%s\n%s\n" "$PT" "$KEY" | ./des)
 
-if [[ "$OUTPUT" == "$EXPECTED" ]]; then
-  echo "[PASS] Sample DES output matches expected ciphertext."
+if [[ "$CT" == "$EXPECTED" ]]; then
+  echo "[PASS] test_des_sample: Ciphertext matches the expected standard output."
 else
-  echo "[FAIL] Unexpected output."
+  echo "[FAIL] test_des_sample: Output did not match expected."
   echo "Expected: $EXPECTED"
-  echo "Got:      $OUTPUT"
+  echo "Got:      $CT"
   exit 1
 fi
